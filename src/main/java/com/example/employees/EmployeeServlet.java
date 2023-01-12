@@ -68,5 +68,73 @@ public class EmployeeServlet extends HttpServlet {
         dispatcher.forward(req, resp);
     }
 
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        String action = req.getParameter("action");
+        switch (action) {
+            case "add":
+                addEmployeeAction(req, resp);
+                break;
+            case "edit":
+                editEmployeeAction(req, resp);
+                break;
+            case "remove":
+                removeEmployeeByName(req, resp);
+                break;
+        }
+
+    }
+
+    private void addEmployeeAction(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        String name = req.getParameter("name");
+        String lastName = req.getParameter("lastName");
+        String birthday = req.getParameter("birthDate");
+        String role = req.getParameter("role");
+        String department = req.getParameter("department");
+        String email = req.getParameter("email");
+        Employee employee = new Employee(name, lastName, birthday, role, department, email);
+        long idEmployee = employeeService.addEmployee(employee);
+        List<Employee> employeeList = employeeService.getAllEmployees();
+        req.setAttribute("idEmployee", idEmployee);
+        String message = "The new employee has been successfully created.";
+        req.setAttribute("message", message);
+        forwardListEmployees(req, resp, employeeList);
+    }
+
+    private void editEmployeeAction(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        String name = req.getParameter("name");
+        String lastName = req.getParameter("lastName");
+        String birthday = req.getParameter("birthDate");
+        String role = req.getParameter("role");
+        String department = req.getParameter("department");
+        String email = req.getParameter("email");
+        long idEmployee = Integer.valueOf(req.getParameter("idEmployee"));
+        Employee employee = new Employee(name, lastName, birthday, role, department, email, idEmployee);
+        employee.setId(idEmployee);
+        boolean success = employeeService.updateEmployee(employee);
+        String message = null;
+        if (success) {
+            message = "The employee has been successfully updated.";
+        }
+        List<Employee> employeeList = employeeService.getAllEmployees();
+        req.setAttribute("idEmployee", idEmployee);
+        req.setAttribute("message", message);
+        forwardListEmployees(req, resp, employeeList);
+    }
+
+    private void removeEmployeeByName(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        long idEmployee = Integer.valueOf(req.getParameter("idEmployee"));
+        boolean confirm = employeeService.deleteEmployee(idEmployee);
+        if (confirm){
+            String message = "The employee has been successfully removed.";
+            req.setAttribute("message", message);
+        }
+        List<Employee> employeeList = employeeService.getAllEmployees();
+        forwardListEmployees(req, resp, employeeList);
+    }
 
 }
